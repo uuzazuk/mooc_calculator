@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>계산기</title>
+
+        <style>
+            td {
+                padding: 15px;
+            }
+
+            tr {
+                height: 60px;
+            }
+        </style>
+    </head>
+    <body>
+        <table border="1">
+            <tr>
+                <td id="input" colspan="4"></td>
+            </tr>
+            <tr>
+                <td id="result" colspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="3" onclick="calc.pressBtn('AC')">AC</td>
+                <td colspan="1" onclick="calc.pressBtn('/')">/</td>
+            </tr>
+            <tr>
+                <td onclick="calc.pressBtn('7')">7</td>
+                <td onclick="calc.pressBtn('8')">8</td>
+                <td onclick="calc.pressBtn('9')">9</td>
+                <td onclick="calc.pressBtn('*')">*</td>
+            </tr>
+            <tr>
+                <td onclick="calc.pressBtn('4')">4</td>
+                <td onclick="calc.pressBtn('5')">5</td>
+                <td onclick="calc.pressBtn('6')">6</td>
+                <td onclick="calc.pressBtn('-')">-</td>
+            </tr>
+            <tr>
+                <td onclick="calc.pressBtn('1')">1</td>
+                <td onclick="calc.pressBtn('2')">2</td>
+                <td onclick="calc.pressBtn('3')">3</td>
+                <td onclick="calc.pressBtn('+')">+</td>
+            </tr>
+            <tr>
+                <td colspan="2" onclick="calc.pressBtn('0')">0</td>
+                <td onclick="calc.pressBtn('.')">.</td>
+                <td onclick="calc.pressBtn('=')">=</td>
+            </tr>
+        </table>
+
+        <table border="1">
+            <tbody id="retTbl">
+                <tr>
+                    <td colspan="2">계산 결과</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script>
+            class Calculator {
+                constructor() {
+                    this.init();
+                    this.retId = 0;
+                }
+
+                init() {
+                    this.state = Calculator.STATE_INIT;
+                    this.input = "";
+                    this.op1 = "";
+                    this.op2 = "";
+                    this.pointState = false;
+                    this.operator = "";
+                    this.ret = "0";
+
+                    document.getElementById("input").innerText = this.input;
+                    document.getElementById("result").innerText = this.ret;
+                }
+
+                getRetId() {
+                    this.retId++;
+                    return "ret" + String(this.retId);
+                }
+
+                addResult(id) {
+                    let retTbl = document.getElementById("retTbl");
+                    let rowCount = retTbl.rows.length;
+                    let row = retTbl.insertRow(rowCount);
+                    row.id = id;
+
+                    let cell1 = row.insertCell(0);
+                    cell1.innerHTML = "<td colspan='1'>" + this.input + "=" + this.ret + "</td>";
+                    let cell2 = row.insertCell(1);
+                    cell2.innerHTML = "<td colspan='1'><input type='button' value='del' onclick='calc.deleteResult(\"" + id + "\")'></td>";
+                }
+
+                deleteResult(id) {
+                    var row = document.getElementById(id);
+                    row.parentNode.removeChild(row);
+                }
+
+                pressBtn(key) {
+                    switch (key) {
+                        case "0":
+                        case "1":
+                        case "2":
+                        case "3":
+                        case "4":
+                        case "5":
+                        case "6":
+                        case "7":
+                        case "8":
+                        case "9":
+                        case ".":
+                            if (this.state === Calculator.STATE_RUN) {
+                                this.init();
+                            }
+
+                            if (this.state === Calculator.STATE_INIT) this.state = Calculator.STATE_OP1;
+
+                            if (this.state === Calculator.STATE_OPERATOR) this.state = Calculator.STATE_OP2;
+
+                            if (this.pointState && key === ".") return;
+
+                            if (this.state === Calculator.STATE_OP1) {
+                                if (key === "." && !this.op1) return;
+                                this.op1 += key;
+                            }
+
+                            if (this.state === Calculator.STATE_OP2) {
+                                if (key === "." && !this.op2) return;
+                                this.op2 += key;
+                            }
+
+                            if (key === ".") this.pointState = true;
+
+                            this.input += key;
+                            document.getElementById("input").innerText = this.input;
+                            break;
+
+                        case "+":
+                        case "-":
+                        case "*":
+                        case "/":
+                            if (this.state === Calculator.STATE_OP1) {
+                                this.state = Calculator.STATE_OPERATOR;
+                                this.operator = key;
+
+                                this.input += key;
+                                document.getElementById("input").innerText = this.input;
+
+                                this.pointState = false;
+                            }
+                            break;
+
+                        case "=":
+                            if (this.state === Calculator.STATE_OP2) {
+                                this.state = Calculator.STATE_RUN;
+                                let op1 = Number(this.op1);
+                                let op2 = Number(this.op2);
+                                let ret = 0;
+
+                                if (this.operator === "+") ret = op1 + op2;
+                                else if (this.operator === "-") ret = op1 - op2;
+                                else if (this.operator === "*") ret = op1 * op2;
+                                else if (this.operator === "/") ret = op1 / op2;
+
+                                this.ret = ret;
+                                document.getElementById("result").innerText = this.ret;
+
+                                this.addResult(this.getRetId());
+                            }
+                            break;
+
+                        case "AC":
+                            this.init();
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            Calculator.STATE_INIT = "STATE_INIT";
+            Calculator.STATE_OP1 = "STATE_OP1";
+            Calculator.STATE_OPERATOR = "STATE_OPERATOR";
+            Calculator.STATE_OP2 = "STATE_OP2";
+            Calculator.STATE_RUN = "STATE_RUN";
+
+            let calc = new Calculator();
+            //calc.doCal();
+        </script>
+    </body>
+</html>
